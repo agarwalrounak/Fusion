@@ -19,6 +19,7 @@ from .models import (Project_Closure, Project_Extension, Project_Reallocation,
                      Project_Registration)
 from .views_office_students import *
 
+# create your views here
 @login_required
 def officeOfDeanRSPC(request):
     project = Project_Registration.objects.all()
