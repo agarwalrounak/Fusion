@@ -1,5 +1,5 @@
 import datetime
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
@@ -12,7 +12,7 @@ from applications.academic_procedures.models import Thesis
 from applications.globals.models import (Designation, ExtraInfo,
                                          HoldsDesignation, User)
 from applications.scholarships.models import Mcm
-
+from applications.eis.models import emp_research_projects, emp_patents, emp_consultancy_projects
 from .forms import *
 from .models import *
 from .models import (Project_Closure, Project_Extension, Project_Reallocation,
@@ -22,6 +22,9 @@ from .views_office_students import *
 # create your views here
 @login_required
 def officeOfDeanRSPC(request):
+    projects = emp_research_projects.objects.all().order_by('-start_date')
+    consultancy = emp_consultancy_projects.objects.all().order_by('-start_date')
+    patents = emp_patents.objects.all().order_by('-p_year', '-a_month')
     project = Project_Registration.objects.all()
     project1 = Project_Extension.objects.all()
     project2 = Project_Closure.objects.all()
@@ -33,7 +36,7 @@ def officeOfDeanRSPC(request):
     for i in design:
         desig.append(str(i.designation))
 
-    context = {'project': project, 'project1': project1, 'project2': project2, 'project3': project3, 'desig': desig}
+    context = {'projects': projects, 'consultancy': consultancy, 'patents': patents, 'project': project, 'project1': project1, 'project2': project2, 'project3': project3, 'desig': desig}
 
     return render(request, "officeModule/officeOfDeanRSPC/officeOfDeanRSPC.html", context)
 
@@ -273,6 +276,7 @@ def project_register(request):
     CO_PI = request.POST.get('copi_name')
    # start_date = datetime.strptime(request.POST.get('start_date'), "%Y-%m-%d")
     start_date = request.POST.get('start_date')
+
     duration = request.POST.get('duration')
     #duration = datetime.timedelta('duration')
     agreement=request.POST.get('agreement')
@@ -282,7 +286,7 @@ def project_register(request):
     #fund_recieved_date=datetime.strptime(request.POST.get('fund_recieved_date'), "%Y-%m-%d")
     project_operated = request.POST.get('project_operated')
     fund_recieved_date = request.POST.get('fund_recieved_date')
-
+    file = request.POST.get('load', False)
     request_obj = Project_Registration(PI_id=extrainfo, project_title=project_title,
                                sponsored_agency=sponsored_agency, CO_PI=CO_PI, agreement=agreement,
                                amount_sanctioned=amount_sanctioned, project_type=project_type,
@@ -299,21 +303,52 @@ def project_registration_permission(request):
         id_list=request.POST.getlist('id[]')
         for id in id_list:
             obj=Project_Registration.objects.get(pk=id)
-            obj.DRSPC_response='Approve'
-            obj.save()
-    elif 'forward' in request.POST:
+            if "Pending" in obj.DRSPC_response or "Disapprove" in obj.DRSPC_response:
+
+
+                #approved project should be registered in project displayed to dean rspc
+                pf_no=obj.PI_id.id
+                pi = obj.PI_id.user.first_name + " " + obj.PI_id.user.last_name
+                co_pi = obj.CO_PI
+                title = obj.project_title
+                funding_agency = obj.sponsored_agency
+                start_date = obj.start_date
+                days = int(obj.duration)*7
+                finish_date = start_date + timedelta(days=days)
+                financial_outlay = obj.amount_sanctioned
+                ptype = obj.project_type
+                print(ptype)
+                date_entry = obj.applied_date
+                status="Ongoing"
+                if ptype == "sponsoered research":
+                    emp_projects = emp_research_projects(pi=pi, co_pi=co_pi, title=title, funding_agency=funding_agency,
+                                                         start_date=start_date, finish_date=finish_date, date_entry=date_entry,
+                                                         financial_outlay=financial_outlay, status=status, pf_no=pf_no, ptype=ptype)
+                    emp_projects.save()
+                elif ptype == "consultancy":
+                    emp_projects = emp_consultancy_projects(consultants=pi, title=title, client=funding_agency,
+                                                            start_date=start_date, end_date=finish_date,
+                                                            duration=obj.duration + " " + "weeks", financial_outlay=financial_outlay,
+                                                            pf_no=pf_no, date_entry=date_entry)
+                    emp_projects.save()
+                obj.DRSPC_response = "Approve"
+                obj.save()
+
+    elif "forward" in request.POST:
         id_list = request.POST.getlist('id[]')
         for id in id_list:
             obj=Project_Registration.objects.get(pk=id)
-            obj.DRSPC_response='Forward'
-            obj.save()
-    elif 'reject' in request.POST:
+            if obj.DRSPC_response == 'Pending':
+                obj.DRSPC_response="Forward"
+                obj.save()
+    elif "reject" in request.POST:
         id_list = request.POST.getlist('id[]')
         for id in id_list:
             obj=Project_Registration.objects.get(pk=id)
-            print(obj.DRSPC_response)
-            obj.DRSPC_response='Disapprove'
-            obj.save()
+            #print(obj.DRSPC_response)
+            if obj.DRSPC_response == 'Pending':
+                obj.DRSPC_response="Disapprove"
+                obj.save()
     return HttpResponseRedirect('/office/officeOfDeanRSPC/')
 
 
@@ -321,22 +356,22 @@ def project_extension_permission(request):
     if 'approve' in request.POST:
         id=request.POST.get('id')
         obj=Project_Extension.objects.get(pk=id)
-        if obj.DRSPC_response == 'Pending':
-            obj.DRSPC_response='Approve'
-            obj.save()
+        #if obj.DRSPC_response == 'Pending':
+        obj.DRSPC_response='Approve'
+        obj.save()
     elif 'forward' in request.POST:
         id=request.POST.get('id')
         obj=Project_Extension.objects.get(pk=id)
-        if obj.DRSPC_response == 'Pending':
-            obj.DRSPC_response='Forward'
-            obj.save()
+        #if obj.DRSPC_response == 'Pending':
+        obj.DRSPC_response='Forward'
+        obj.save()
     elif 'reject' in request.POST:
         id=request.POST.get('id')
         obj=Project_Extension.objects.get(pk=id)
         print(obj.DRSPC_response)
-        if obj.DRSPC_response == 'Pending':
-            obj.DRSPC_response='Disapprove'
-            obj.save()
+        #if obj.DRSPC_response == 'Pending':
+        obj.DRSPC_response='Disapprove'
+        obj.save()
     return HttpResponseRedirect('/office/officeOfDeanRSPC/')
 
 
