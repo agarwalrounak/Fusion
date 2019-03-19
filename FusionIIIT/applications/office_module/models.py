@@ -178,9 +178,9 @@ class Project_Registration(models.Model):
     project_title = models.CharField(max_length=200)
     sponsored_agency = models.CharField(max_length=100)
     CO_PI = models.CharField(max_length=100, null=True)
-    start_date = models.DateField(null=True, blank=True)
+    start_date = models.DateField()
 
-    duration = models.CharField(default='0', max_length=100)
+    duration = models.IntegerField(default=0)
     agreement = models.CharField(choices=Constants.TICK_TYPE,
                                  max_length=10, default='NO')
     amount_sanctioned = models.IntegerField(default=0)
@@ -189,14 +189,14 @@ class Project_Registration(models.Model):
     project_operated = models.CharField(choices=Constants.PROJECT_OPERATED,
                                         max_length=50, default='me')
     remarks = models.CharField(max_length=200)
-    fund_recieved_date = models.DateField(null=True, blank=True)
+    fund_recieved_date = models.DateField()
     HOD_response = models.CharField(choices=Constants.RESPONSE_TYPE1,
                                     max_length=10, default='Pending')
     DRSPC_response = models.CharField(choices=Constants.RESPONSE_TYPE,
                                       max_length=10, default='Pending')
     applied_date = models.DateField(null=True, blank=True)
     description = models.CharField(max_length=200, null=True)
-    file = models.FileField(null=True, upload_to='documents/')
+    file = models.FileField(upload_to='documents/', blank=True, null=True)
 
     def __str__(self):
         return self.project_title

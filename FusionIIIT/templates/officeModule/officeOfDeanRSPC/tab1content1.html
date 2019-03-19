@@ -17,19 +17,19 @@
             
             <div class="four wide field">
                 <label>Project Start Date</label>
-                <input value="" class="ui large input" type="date" name="start_date">
+                <input value="" class="ui large input" type="date" name="start_date" required>
             </div>
 
             <div class="four wide field">
                 <label>Fund Received Date</label>
-                <input value="" class="ui large input" type="date" name="fund_recieved_date">
+                <input value="" class="ui large input" type="date" name="fund_recieved_date" required>
             </div>
         </div>
         
         <div class="three fields">
             <div class="six wide field">
                 <label>Project Duration (In weeks)</label>
-                <input value="" placeholder="Number of weeks eg. 42.." class="ui large input"  name="duration">
+                <input value="" placeholder="Number of weeks eg. 42.." type="number" class="ui large input"  name="duration">
             </div>
 
             <div class="six wide field">
@@ -58,7 +58,7 @@
             </div>
 
             <div class="four wide field">
-                <label>CO_PI_ID</label>
+                <label>CO_PI</label>
                 <input class="ui large input" name="copi_name">
             </div>
 
@@ -74,8 +74,8 @@
         </div>
 
         <div class="field">
-            <label>Attachments (if any)</label>
-            <input class="ui input" type="file" name='load'>
+            <label>Attachments</label>
+            <input class="ui input" type="file" name='p_register' required>
         </div>
 
         <div class="field">
@@ -83,23 +83,23 @@
             <textarea rows="2" name="remarks"></textarea>
         </div>
 
-        <div class="two fields">
-            <div class="six wide field">
-                <label>PI</label>
-                <input class="ui large input" name="pi_name" >
-            </div>
+        <!--<div class="two fields">-->
+            <!--<div class="six wide field">-->
+                <!--<label>PI</label>-->
+                <!--<input class="ui large input" name="pi_name" >-->
+            <!--</div>-->
 
-           <!--  <div class="four wide field">
-                <label>Mobile No of PI</label>
-                <input class="ui large input" type="number" name="mobile_pi">
-            </div>
-             -->
+           <!--&lt;!&ndash;  <div class="four wide field">-->
+                <!--<label>Mobile No of PI</label>-->
+                <!--<input class="ui large input" type="number" name="mobile_pi">-->
+            <!--</div>-->
+             <!--&ndash;&gt;-->
 
-            <!-- <div class="four wide field">
-                <label>Mobile No of Co-PI</label>
-                <input class="ui large input" type="number" name="mobile_copi">
-            </div> -->
-        </div>
+            <!--&lt;!&ndash; <div class="four wide field">-->
+                <!--<label>Mobile No of Co-PI</label>-->
+                <!--<input class="ui large input" type="number" name="mobile_copi">-->
+            <!--</div> &ndash;&gt;-->
+        <!--</div>-->
 
         <div class="field">
             <button class="ui primary button right floated" type="submit">

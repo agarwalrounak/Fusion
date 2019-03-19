@@ -278,13 +278,13 @@ def project_register(request):
     """
 
     """Project Fields added"""
+    print("hello project_register")
     user = request.user
     extrainfo = ExtraInfo.objects.get(user=user)
     project_title = request.POST.get('project_title')
     sponsored_agency = request.POST.get('sponsored_agency')
     CO_PI = request.POST.get('copi_name')
     start_date = request.POST.get('start_date')
-
     duration = request.POST.get('duration')
     # duration = datetime.timedelta('duration')
     agreement = request.POST.get('agreement')
@@ -293,7 +293,7 @@ def project_register(request):
     # remarks=request.POST.get('remarks')
     project_operated = request.POST.get('project_operated')
     fund_recieved_date = request.POST.get('fund_recieved_date')
-    # file = request.FILES['load']
+    file = request.FILES['p_register']
     description = request.POST.get('remarks')
 
     """Save the Details to Project_Registration Table"""
@@ -301,7 +301,7 @@ def project_register(request):
                                        sponsored_agency=sponsored_agency, CO_PI=CO_PI, agreement=agreement,
                                        amount_sanctioned=amount_sanctioned, project_type=project_type,
                                        duration=duration, fund_recieved_date=fund_recieved_date, start_date=start_date,
-                                       description=description)
+                                       file=file,description=description)
     request_obj.save()
     context = {}
     return render(request, "eisModulenew/profile.html", context)
@@ -332,7 +332,7 @@ def project_registration_permission(request):
                 title = obj.project_title
                 funding_agency = obj.sponsored_agency
                 start_date = obj.start_date
-                days = int(obj.duration) * 7
+                days = obj.duration * 7
                 finish_date = start_date + timedelta(days=days)
                 financial_outlay = obj.amount_sanctioned
                 ptype = obj.project_type
@@ -423,13 +423,13 @@ def project_extension_permission(request):
 
                 if ptype == "sponsoered research":
                     pr = emp_research_projects.objects.get(pf_no=pf, title=title)
-                    days = int(obj.extended_duration) * 7
+                    days = obj.extended_duration * 7
                     pr.finish_date = pr.finish_date + timedelta(days=days)
                     pr.save()
 
                 elif ptype == "consultancy":
                     pr = emp_consultancy_projects.objects.get(pf_no=pf, title=title)
-                    days = int(obj.extended_duration) * 7
+                    days = obj.extended_duration * 7
                     pr.end_date = pr.end_date + timedelta(days=days)
                     pr.save()
 
