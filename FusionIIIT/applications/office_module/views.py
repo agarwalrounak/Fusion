@@ -608,6 +608,31 @@ def project_reallocation_permission(request):
                 obj.save()
     return HttpResponseRedirect('/office/officeOfDeanRSPC/')
 
+
+"""
+views for details page for Project Registration, Extension, Fund Reallocation, Closure
+"""
+
+def reg_details(request, pr_id):
+    obj = get_object_or_404(Project_Registration, pk=pr_id)
+    return render(request, "officeModule/officeOfDeanRSPC/view_details.html", {"obj": obj})
+
+def ext_details(request, pr_id):
+    pr = get_object_or_404(Project_Extension, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/extension_details.html", {"obj": obj, 'pr': pr})
+
+def reallocate_details(request, pr_id):
+    pr = get_object_or_404(Project_Reallocation, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/reallocation_details.html", {"obj": obj, 'pr': pr})
+
+def closure_details(request, pr_id):
+    pr = get_object_or_404(Project_Closure, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/closure_details.html", {"obj": obj, 'pr': pr})
+
+
 #DEAN RSPC MODULE ENDS HERE ..........................................................................................
 
 
@@ -659,9 +684,6 @@ def hod_allocation(request):
     return HttpResponseRedirect('/office/eisModulenew/profile/')
 
 
-def pdf(request, pr_id):
-    obj = Project_Registration.objects.get(pk=pr_id)
-    return render(request, "officeModule/officeOfDeanRSPC/view_details.html", {"obj": obj})
 
 
 def genericModule(request):
