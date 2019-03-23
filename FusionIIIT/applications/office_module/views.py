@@ -1,6 +1,6 @@
 import datetime
 from datetime import date, datetime, timedelta
-
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -278,7 +278,6 @@ def project_register(request):
     """
 
     """Project Fields added"""
-    print("hello project_register")
     user = request.user
     extrainfo = ExtraInfo.objects.get(user=user)
     project_title = request.POST.get('project_title')
@@ -388,16 +387,29 @@ def project_extension(request):
     """Project extension details added"""
     project_id = request.POST.get('project_id')
     ob = Project_Registration.objects.get(id=project_id)
-    date = ob.start_date
-    sponser = ob.sponsored_agency
-    extended_duration = request.POST.get('extended_duration')
-    extension_detail = request.POST.get('extension_details')
-    if ob.DRSPC_response == 'Approve':
-        request_obj2 = Project_Extension(project_id=ob, date=date, extended_duration=extended_duration,
-                                         extension_details=extension_detail)
-        request_obj2.save()
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == ob.PI_id.id:
+        date = ob.start_date
+        sponser = ob.sponsored_agency
+        extended_duration = request.POST.get('extended_duration')
+        extension_detail = request.POST.get('extension_details')
+        if ob.DRSPC_response == 'Approve':
+            request_obj2 = Project_Extension(project_id=ob, date=date, extended_duration=extended_duration,
+                                             extension_details=extension_detail)
+            request_obj2.save()
+
+            messages.success(request, 'Application Sent')
+
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
+
+
 
 # PROJECT EXTENSION TABLE END .......................................................................................
 
@@ -464,33 +476,41 @@ def project_closure(request):
     """Project closure conditions added"""
     project_id = request.POST.get('project_id')
     extrainfo1 = Project_Registration.objects.get(id=project_id)
-    # ob = Project_Registration.objects.filter(id = extrainfo1)
-    completion_date = request.POST.get('date')
-    # extended_duration = ob.duration
-    expenses_dues = request.POST.get('committed')
-    expenses_dues_description = request.POST.get('remark1')
-    payment_dues = request.POST.get('payment')
-    payment_dues_description = request.POST.get('remark2')
-    salary_dues = request.POST.get('salary')
-    salary_dues_description = request.POST.get('remark3')
-    advances_dues = request.POST.get('advance')
-    advances_description = request.POST.get('remark4')
-    others_dues = request.POST.get('other')
-    other_dues_description = request.POST.get('remark5')
-    overhead_deducted = request.POST.get('overhead')
-    overhead_description = request.POST.get('remark6')
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == extrainfo1.PI_id.id:
+        completion_date = request.POST.get('date')
+        # extended_duration = ob.duration
+        expenses_dues = request.POST.get('committed')
+        expenses_dues_description = request.POST.get('remark1')
+        payment_dues = request.POST.get('payment')
+        payment_dues_description = request.POST.get('remark2')
+        salary_dues = request.POST.get('salary')
+        salary_dues_description = request.POST.get('remark3')
+        advances_dues = request.POST.get('advance')
+        advances_description = request.POST.get('remark4')
+        others_dues = request.POST.get('other')
+        other_dues_description = request.POST.get('remark5')
+        overhead_deducted = request.POST.get('overhead')
+        overhead_description = request.POST.get('remark6')
 
-    if extrainfo1.DRSPC_response == 'Approve':
-        request_obj1 = Project_Closure(project_id=extrainfo1, completion_date=completion_date,
-                                       expenses_dues=expenses_dues, expenses_dues_description=expenses_dues_description,
-                                       payment_dues=payment_dues, payment_dues_description=payment_dues_description,
-                                       salary_dues=salary_dues,
-                                       salary_dues_description=salary_dues_description, advances_dues=advances_dues,
-                                       advances_description=advances_description,
-                                       others_dues=others_dues, other_dues_description=other_dues_description,
-                                       overhead_deducted=overhead_deducted,
-                                       overhead_description=overhead_description)
-        request_obj1.save()
+        if extrainfo1.DRSPC_response == 'Approve':
+            request_obj1 = Project_Closure(project_id=extrainfo1, completion_date=completion_date,
+                                           expenses_dues=expenses_dues, expenses_dues_description=expenses_dues_description,
+                                           payment_dues=payment_dues, payment_dues_description=payment_dues_description,
+                                           salary_dues=salary_dues,
+                                           salary_dues_description=salary_dues_description, advances_dues=advances_dues,
+                                           advances_description=advances_description,
+                                           others_dues=others_dues, other_dues_description=other_dues_description,
+                                           overhead_deducted=overhead_deducted,
+                                           overhead_description=overhead_description)
+            request_obj1.save()
+
+            messages.success(request, 'Application Sent')
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
 
@@ -543,19 +563,28 @@ def project_reallocation(request):
     """Project reallocation details added"""
     project_id = request.POST.get('project_id')
     ob1 = Project_Registration.objects.get(id=project_id)
-    date = request.POST.get('date')
-    pfno = request.POST.get('pfno')
-    pbh = request.POST.get('p_budget_head')
-    p_amount = request.POST.get('p_amount')
-    nbh = request.POST.get('n_budget_head')
-    n_amount = request.POST.get('n_amount')
-    reason = request.POST.get('reason')
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == ob1.PI_id.id:
+        applied_date = request.POST.get('applied_date')
+        pfno = request.POST.get('pfno')
+        pbh = request.POST.get('p_budget_head')
+        p_amount = request.POST.get('p_amount')
+        nbh = request.POST.get('n_budget_head')
+        n_amount = request.POST.get('n_amount')
+        reason = request.POST.get('reason')
 
-    if ob1.DRSPC_response == 'Approve':
-        request_obj3 = Project_Reallocation(project_id=ob1, date=date, previous_budget_head=pbh,
-                                            previous_amount=p_amount, new_budget_head=nbh, new_amount=n_amount,
-                                            transfer_reason=reason, pf_no=pfno)
-        request_obj3.save()
+        if ob1.DRSPC_response == 'Approve':
+            request_obj3 = Project_Reallocation(project_id=ob1, date=applied_date, previous_budget_head=pbh,
+                                                previous_amount=p_amount, new_budget_head=nbh, new_amount=n_amount,
+                                                transfer_reason=reason, pf_no=pfno)
+            request_obj3.save()
+            messages.success(request, 'Application Sent')
+
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
 

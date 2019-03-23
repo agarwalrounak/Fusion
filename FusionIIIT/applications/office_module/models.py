@@ -178,7 +178,7 @@ class Project_Registration(models.Model):
     project_title = models.CharField(max_length=200)
     sponsored_agency = models.CharField(max_length=100)
     CO_PI = models.CharField(max_length=100, null=True)
-    start_date = models.DateField()
+    start_date = models.DateField(null=True,blank=True)
 
     duration = models.IntegerField(default=0)
     agreement = models.CharField(choices=Constants.TICK_TYPE,
@@ -189,7 +189,7 @@ class Project_Registration(models.Model):
     project_operated = models.CharField(choices=Constants.PROJECT_OPERATED,
                                         max_length=50, default='me')
     remarks = models.CharField(max_length=200)
-    fund_recieved_date = models.DateField()
+    fund_recieved_date = models.DateField(null=True,blank=True)
     HOD_response = models.CharField(choices=Constants.RESPONSE_TYPE1,
                                     max_length=10, default='Pending')
     DRSPC_response = models.CharField(choices=Constants.RESPONSE_TYPE,
@@ -204,7 +204,7 @@ class Project_Registration(models.Model):
 
 class Project_Extension(models.Model):
     project_id = models.ForeignKey(Project_Registration, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(null=True,blank=True)
     extended_duration = models.CharField(max_length=300)
     extension_details = models.CharField(max_length=300)
     HOD_response = models.CharField(choices=Constants.RESPONSE_TYPE1,
@@ -218,7 +218,7 @@ class Project_Extension(models.Model):
 
 class Project_Closure(models.Model):
     project_id = models.ForeignKey(Project_Registration, on_delete=models.CASCADE)
-    completion_date = models.DateField()
+    completion_date = models.DateField(null=True,blank=True)
     # extended_duration = models.CharField(max_length=200, blank=True, null=True)
     expenses_dues = models.CharField(choices=Constants.TICK_TYPE,
                                      max_length=10, default='Pending')
@@ -251,7 +251,7 @@ class Project_Closure(models.Model):
 
 class Project_Reallocation(models.Model):
     project_id = models.ForeignKey(Project_Registration, on_delete=models.CASCADE)
-    date = models.DateField()
+    date = models.DateField(null=True, blank=True)
     previous_budget_head = models.CharField(max_length=300)
     previous_amount = models.IntegerField(default=0)
     pf_no = models.CharField(max_length=100, null=True)
