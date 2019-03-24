@@ -1,6 +1,6 @@
 import datetime
 from datetime import date, datetime, timedelta
-
+from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
@@ -284,7 +284,6 @@ def project_register(request):
     sponsored_agency = request.POST.get('sponsored_agency')
     CO_PI = request.POST.get('copi_name')
     start_date = request.POST.get('start_date')
-
     duration = request.POST.get('duration')
     # duration = datetime.timedelta('duration')
     agreement = request.POST.get('agreement')
@@ -293,7 +292,7 @@ def project_register(request):
     # remarks=request.POST.get('remarks')
     project_operated = request.POST.get('project_operated')
     fund_recieved_date = request.POST.get('fund_recieved_date')
-    # file = request.FILES['load']
+    file = request.FILES['p_register']
     description = request.POST.get('remarks')
 
     """Save the Details to Project_Registration Table"""
@@ -301,7 +300,7 @@ def project_register(request):
                                        sponsored_agency=sponsored_agency, CO_PI=CO_PI, agreement=agreement,
                                        amount_sanctioned=amount_sanctioned, project_type=project_type,
                                        duration=duration, fund_recieved_date=fund_recieved_date, start_date=start_date,
-                                       description=description)
+                                       file=file,description=description)
     request_obj.save()
     context = {}
     return render(request, "eisModulenew/profile.html", context)
@@ -332,7 +331,7 @@ def project_registration_permission(request):
                 title = obj.project_title
                 funding_agency = obj.sponsored_agency
                 start_date = obj.start_date
-                days = int(obj.duration) * 7
+                days = obj.duration * 7
                 finish_date = start_date + timedelta(days=days)
                 financial_outlay = obj.amount_sanctioned
                 ptype = obj.project_type
@@ -388,16 +387,29 @@ def project_extension(request):
     """Project extension details added"""
     project_id = request.POST.get('project_id')
     ob = Project_Registration.objects.get(id=project_id)
-    date = ob.start_date
-    sponser = ob.sponsored_agency
-    extended_duration = request.POST.get('extended_duration')
-    extension_detail = request.POST.get('extension_details')
-    if ob.DRSPC_response == 'Approve':
-        request_obj2 = Project_Extension(project_id=ob, date=date, extended_duration=extended_duration,
-                                         extension_details=extension_detail)
-        request_obj2.save()
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == ob.PI_id.id:
+        date = ob.start_date
+        sponser = ob.sponsored_agency
+        extended_duration = request.POST.get('extended_duration')
+        extension_detail = request.POST.get('extension_details')
+        if ob.DRSPC_response == 'Approve':
+            request_obj2 = Project_Extension(project_id=ob, date=date, extended_duration=extended_duration,
+                                             extension_details=extension_detail)
+            request_obj2.save()
+
+            messages.success(request, 'Application Sent')
+
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
+
+
 
 # PROJECT EXTENSION TABLE END .......................................................................................
 
@@ -423,13 +435,13 @@ def project_extension_permission(request):
 
                 if ptype == "sponsoered research":
                     pr = emp_research_projects.objects.get(pf_no=pf, title=title)
-                    days = int(obj.extended_duration) * 7
+                    days = obj.extended_duration * 7
                     pr.finish_date = pr.finish_date + timedelta(days=days)
                     pr.save()
 
                 elif ptype == "consultancy":
                     pr = emp_consultancy_projects.objects.get(pf_no=pf, title=title)
-                    days = int(obj.extended_duration) * 7
+                    days = obj.extended_duration * 7
                     pr.end_date = pr.end_date + timedelta(days=days)
                     pr.save()
 
@@ -464,33 +476,41 @@ def project_closure(request):
     """Project closure conditions added"""
     project_id = request.POST.get('project_id')
     extrainfo1 = Project_Registration.objects.get(id=project_id)
-    # ob = Project_Registration.objects.filter(id = extrainfo1)
-    completion_date = request.POST.get('date')
-    # extended_duration = ob.duration
-    expenses_dues = request.POST.get('committed')
-    expenses_dues_description = request.POST.get('remark1')
-    payment_dues = request.POST.get('payment')
-    payment_dues_description = request.POST.get('remark2')
-    salary_dues = request.POST.get('salary')
-    salary_dues_description = request.POST.get('remark3')
-    advances_dues = request.POST.get('advance')
-    advances_description = request.POST.get('remark4')
-    others_dues = request.POST.get('other')
-    other_dues_description = request.POST.get('remark5')
-    overhead_deducted = request.POST.get('overhead')
-    overhead_description = request.POST.get('remark6')
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == extrainfo1.PI_id.id:
+        completion_date = request.POST.get('date')
+        # extended_duration = ob.duration
+        expenses_dues = request.POST.get('committed')
+        expenses_dues_description = request.POST.get('remark1')
+        payment_dues = request.POST.get('payment')
+        payment_dues_description = request.POST.get('remark2')
+        salary_dues = request.POST.get('salary')
+        salary_dues_description = request.POST.get('remark3')
+        advances_dues = request.POST.get('advance')
+        advances_description = request.POST.get('remark4')
+        others_dues = request.POST.get('other')
+        other_dues_description = request.POST.get('remark5')
+        overhead_deducted = request.POST.get('overhead')
+        overhead_description = request.POST.get('remark6')
 
-    if extrainfo1.DRSPC_response == 'Approve':
-        request_obj1 = Project_Closure(project_id=extrainfo1, completion_date=completion_date,
-                                       expenses_dues=expenses_dues, expenses_dues_description=expenses_dues_description,
-                                       payment_dues=payment_dues, payment_dues_description=payment_dues_description,
-                                       salary_dues=salary_dues,
-                                       salary_dues_description=salary_dues_description, advances_dues=advances_dues,
-                                       advances_description=advances_description,
-                                       others_dues=others_dues, other_dues_description=other_dues_description,
-                                       overhead_deducted=overhead_deducted,
-                                       overhead_description=overhead_description)
-        request_obj1.save()
+        if extrainfo1.DRSPC_response == 'Approve':
+            request_obj1 = Project_Closure(project_id=extrainfo1, completion_date=completion_date,
+                                           expenses_dues=expenses_dues, expenses_dues_description=expenses_dues_description,
+                                           payment_dues=payment_dues, payment_dues_description=payment_dues_description,
+                                           salary_dues=salary_dues,
+                                           salary_dues_description=salary_dues_description, advances_dues=advances_dues,
+                                           advances_description=advances_description,
+                                           others_dues=others_dues, other_dues_description=other_dues_description,
+                                           overhead_deducted=overhead_deducted,
+                                           overhead_description=overhead_description)
+            request_obj1.save()
+
+            messages.success(request, 'Application Sent')
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
 
@@ -543,19 +563,28 @@ def project_reallocation(request):
     """Project reallocation details added"""
     project_id = request.POST.get('project_id')
     ob1 = Project_Registration.objects.get(id=project_id)
-    date = request.POST.get('date')
-    pfno = request.POST.get('pfno')
-    pbh = request.POST.get('p_budget_head')
-    p_amount = request.POST.get('p_amount')
-    nbh = request.POST.get('n_budget_head')
-    n_amount = request.POST.get('n_amount')
-    reason = request.POST.get('reason')
+    user = request.user
+    extrainfo = ExtraInfo.objects.get(user=user)
+    if extrainfo.id == ob1.PI_id.id:
+        applied_date = request.POST.get('applied_date')
+        pfno = request.POST.get('pfno')
+        pbh = request.POST.get('p_budget_head')
+        p_amount = request.POST.get('p_amount')
+        nbh = request.POST.get('n_budget_head')
+        n_amount = request.POST.get('n_amount')
+        reason = request.POST.get('reason')
 
-    if ob1.DRSPC_response == 'Approve':
-        request_obj3 = Project_Reallocation(project_id=ob1, date=date, previous_budget_head=pbh,
-                                            previous_amount=p_amount, new_budget_head=nbh, new_amount=n_amount,
-                                            transfer_reason=reason, pf_no=pfno)
-        request_obj3.save()
+        if ob1.DRSPC_response == 'Approve':
+            request_obj3 = Project_Reallocation(project_id=ob1, date=applied_date, previous_budget_head=pbh,
+                                                previous_amount=p_amount, new_budget_head=nbh, new_amount=n_amount,
+                                                transfer_reason=reason, pf_no=pfno)
+            request_obj3.save()
+            messages.success(request, 'Application Sent')
+
+        else:
+            messages.error(request, 'Project is not accepted by Dean RSPC')
+    else:
+        messages.error(request, 'Invalid User for entered Project ID')
     context = {}
     return render(request, "eisModulenew/profile.html", context)
 
@@ -608,6 +637,31 @@ def project_reallocation_permission(request):
                 obj.save()
     return HttpResponseRedirect('/office/officeOfDeanRSPC/')
 
+
+"""
+views for details page for Project Registration, Extension, Fund Reallocation, Closure
+"""
+
+def reg_details(request, pr_id):
+    obj = get_object_or_404(Project_Registration, pk=pr_id)
+    return render(request, "officeModule/officeOfDeanRSPC/view_details.html", {"obj": obj})
+
+def ext_details(request, pr_id):
+    pr = get_object_or_404(Project_Extension, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/extension_details.html", {"obj": obj, 'pr': pr})
+
+def reallocate_details(request, pr_id):
+    pr = get_object_or_404(Project_Reallocation, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/reallocation_details.html", {"obj": obj, 'pr': pr})
+
+def closure_details(request, pr_id):
+    pr = get_object_or_404(Project_Closure, pk=pr_id)
+    obj = get_object_or_404(Project_Registration, pk=pr.project_id.id)
+    return render(request, "officeModule/officeOfDeanRSPC/closure_details.html", {"obj": obj, 'pr': pr})
+
+
 #DEAN RSPC MODULE ENDS HERE ..........................................................................................
 
 
@@ -659,9 +713,6 @@ def hod_allocation(request):
     return HttpResponseRedirect('/office/eisModulenew/profile/')
 
 
-def pdf(request, pr_id):
-    obj = Project_Registration.objects.get(pk=pr_id)
-    return render(request, "officeModule/officeOfDeanRSPC/view_details.html", {"obj": obj})
 
 
 def genericModule(request):
